@@ -32,10 +32,6 @@
   :focus-visible {
     @apply outline-2 outline-offset-2 outline-brand-600;
   }
-
-  input[type="date"]::-webkit-calendar-picker-indicator {
-    cursor: pointer;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -77,4 +73,34 @@
 .rich-text p.is-editor-empty:first-child::before {
   content: attr(data-placeholder);
   @apply pointer-events-none float-start h-0 text-ink-subtle;
+}
+
+/* react-multi-date-picker theme. The library injects its base styles at runtime, after this file,
+   so every rule is scoped under `.rmdp-brand` to win on specificity. */
+.rmdp-wrapper.rmdp-brand {
+  @apply rounded-xl font-sans shadow-lg ring-1 ring-line;
+}
+.rmdp-brand .rmdp-week-day {
+  @apply text-xs font-medium text-ink-subtle;
+}
+.rmdp-brand .rmdp-header-values {
+  @apply text-sm font-semibold text-ink;
+}
+.rmdp-brand .rmdp-arrow {
+  @apply border-ink-muted;
+}
+.rmdp-brand .rmdp-arrow-container:hover {
+  @apply bg-brand-600 shadow-none;
+}
+.rmdp-brand .rmdp-arrow-container:hover .rmdp-arrow {
+  @apply border-white;
+}
+.rmdp-brand .rmdp-day.rmdp-today span {
+  @apply bg-brand-50 text-brand-800;
+}
+.rmdp-brand .rmdp-day.rmdp-selected span:not(.highlight) {
+  @apply bg-brand-600 text-white shadow-none;
+}
+.rmdp-brand .rmdp-day:not(.rmdp-disabled, .rmdp-day-hidden) span:hover {
+  @apply bg-brand-100 text-brand-800;
 }

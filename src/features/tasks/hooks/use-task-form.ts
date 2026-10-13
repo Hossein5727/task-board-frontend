@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useIsMutating } from "@tanstack/react-query";
-import { useForm, useWatch } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { useToast } from "@/components/ui/organisms/toaster";
 import { useSessionUser } from "@/features/auth/hooks/use-session";
 import { canAssignToOthers } from "@/features/auth/permissions";
@@ -10,7 +10,6 @@ import { toApiError } from "@/lib/http/errors";
 import { taskKeys } from "../api/tasks-api";
 import { taskFormSchema, toFormValues, toPayload, UNASSIGNED, type TaskFormValues } from "../schemas/task-schema";
 import type { PersonOption, Task } from "../types";
-import { formatDueDate } from "../utils/dates";
 import { useAssignees, useCreateTask, useUpdateTask } from "./use-tasks";
 
 /** Closing is ignored while a save is in flight so the user sees its result. */
@@ -34,7 +33,6 @@ export function useTaskForm(task: Task | undefined, onDone: () => void) {
     handleSubmit,
     formState: { errors },
   } = useForm<TaskFormValues>({ resolver: zodResolver(taskFormSchema), defaultValues: toFormValues(task) });
-  const dueDate = useWatch({ control, name: "dueDate" });
 
   const canAssign = canAssignToOthers(me.role);
   const assigneeOptions: PersonOption[] = [
@@ -73,6 +71,5 @@ export function useTaskForm(task: Task | undefined, onDone: () => void) {
     errorMessage: mutationError ? toApiError(mutationError).message : null,
     assigneeOptions,
     canAssign,
-    dueDateLabel: dueDate ? formatDueDate(dueDate) : null,
   };
 }

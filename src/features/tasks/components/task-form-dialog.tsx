@@ -5,6 +5,7 @@ import { useId } from "react";
 import { Controller } from "react-hook-form";
 import { Button } from "@/components/ui/atoms/button";
 import { Skeleton } from "@/components/ui/atoms/skeleton";
+import { DatePickerField } from "@/components/ui/molecules/date-picker-field";
 import { FormAlert } from "@/components/ui/molecules/form-alert";
 import { SelectField } from "@/components/ui/molecules/select-field";
 import { TextField } from "@/components/ui/molecules/text-field";
@@ -41,8 +42,10 @@ export function TaskFormDialog({ open, task, onClose }: TaskFormDialogProps) {
 }
 
 function TaskForm({ task, onDone }: { task?: Task; onDone: () => void }) {
-  const { isEdit, register, control, errors, onSubmit, pending, errorMessage, assigneeOptions, canAssign, dueDateLabel } =
-    useTaskForm(task, onDone);
+  const { isEdit, register, control, errors, onSubmit, pending, errorMessage, assigneeOptions, canAssign } = useTaskForm(
+    task,
+    onDone,
+  );
   const descriptionLabelId = useId();
 
   return (
@@ -78,13 +81,18 @@ function TaskForm({ task, onDone }: { task?: Task; onDone: () => void }) {
               />
             )}
           />
-          <TextField
-            label="تاریخ سررسید"
-            type="date"
-            dir="ltr"
-            hint={dueDateLabel ?? "اختیاری"}
-            error={errors.dueDate?.message}
-            {...register("dueDate")}
+          <Controller
+            control={control}
+            name="dueDate"
+            render={({ field }) => (
+              <DatePickerField
+                label="تاریخ سررسید"
+                value={field.value}
+                onChange={field.onChange}
+                hint="اختیاری"
+                error={errors.dueDate?.message}
+              />
+            )}
           />
         </div>
         <div className="flex flex-col gap-1.5">

@@ -212,8 +212,9 @@ works against **this contract**, not against the real backend.
 - Route protection is client-side (`SessionGate`); there is no Next.js `proxy.ts` redirect, because
   cookie names are not agreed. The backend still rejects every unauthorized request.
 - No Content-Security-Policy yet (needs nonce wiring with Next inline scripts).
-- The due-date picker is the native `<input type="date">` (Gregorian); dates are displayed in the
-  Persian calendar.
+- The due-date field (`DatePickerField`, built on `react-multi-date-picker`) is picked and shown in the
+  Persian calendar but always sent as a Gregorian `YYYY-MM-DD`. Its calendar grid is mouse/touch
+  oriented; keyboard users can open it, but day-by-day arrow-key navigation is limited by the library.
 - Light theme only. The demo video and monorepo integration are outside this repository.
 
 ## AI-assisted development
