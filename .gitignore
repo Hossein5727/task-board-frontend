@@ -34,10 +34,6 @@ yarn-error.log*
 .env*
 !.env.example
 
-# playwright
-/test-results/
-/playwright-report/
-
 # vercel
 .vercel
 
