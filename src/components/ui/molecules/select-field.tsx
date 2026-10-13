@@ -38,7 +38,16 @@ export function SelectField<T extends string>({
     <Field disabled={disabled} className={cn("flex flex-col gap-1.5", className)}>
       <Label className="text-sm font-medium text-ink">{label}</Label>
       <Listbox value={value} onChange={onChange} invalid={Boolean(error)}>
-        <ListboxButton className={cn(controlClass, "flex items-center justify-between gap-2 text-start")}>
+        <ListboxButton
+          className={cn(controlClass, "flex items-center justify-between gap-2 text-start")}
+          onKeyDown={(event: React.KeyboardEvent<HTMLButtonElement>) => {
+            // Headless UI submits the enclosing form on Enter; open the list (as Space does) instead.
+            if (event.key === "Enter") {
+              event.preventDefault();
+              event.currentTarget.dispatchEvent(new KeyboardEvent("keydown", { key: " ", bubbles: true }));
+            }
+          }}
+        >
           <span className="flex min-w-0 items-center gap-2">
             {selected?.icon}
             <span className="truncate">{selected?.label ?? "انتخاب کنید"}</span>
