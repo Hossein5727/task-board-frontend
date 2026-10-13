@@ -7,6 +7,13 @@ export type TaskPriority = "low" | "medium" | "high";
 
 export type UserSummary = Pick<User, "id" | "fullName" | "email">;
 
+/** Select option for a person; the UI renders an avatar when `avatarName` is set. */
+export interface PersonOption {
+  value: string;
+  label: string;
+  avatarName?: string;
+}
+
 /** Provisional shape of `GET /todos` items and `GET /todos/:id` (see README → Backend contract). */
 export interface Task {
   id: string;

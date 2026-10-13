@@ -3,13 +3,10 @@
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
 import { ArrowRightStartOnRectangleIcon, ChevronDownIcon } from "@heroicons/react/20/solid";
 import { Avatar } from "@/components/ui/atoms/avatar";
-import { useLogout } from "../hooks/use-session";
-import { ROLE_LABELS } from "../permissions";
-import { useSessionUser } from "./session-gate";
+import { useUserMenu } from "../hooks/use-user-menu";
 
 export function UserMenu() {
-  const user = useSessionUser();
-  const logout = useLogout();
+  const { user, roleLabel, loggingOut, logout } = useUserMenu();
 
   return (
     <Menu>
@@ -29,17 +26,17 @@ export function UserMenu() {
           <p className="truncate text-xs text-ink-muted" dir="ltr">
             {user.email}
           </p>
-          <p className="mt-1 text-xs text-ink-subtle">نقش: {ROLE_LABELS[user.role]}</p>
+          <p className="mt-1 text-xs text-ink-subtle">نقش: {roleLabel}</p>
         </div>
         <MenuItem>
           <button
             type="button"
-            onClick={() => logout.mutate()}
-            disabled={logout.isPending}
+            onClick={logout}
+            disabled={loggingOut}
             className="mt-1 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-rose-700 data-focus:bg-rose-50"
           >
             <ArrowRightStartOnRectangleIcon className="size-4 rotate-180" aria-hidden="true" />
-            {logout.isPending ? "در حال خروج…" : "خروج از حساب"}
+            {loggingOut ? "در حال خروج…" : "خروج از حساب"}
           </button>
         </MenuItem>
       </MenuItems>

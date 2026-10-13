@@ -4,7 +4,7 @@ import { RectangleStackIcon, UsersIcon } from "@heroicons/react/20/solid";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Logo } from "@/components/ui/atoms/logo";
-import { useSessionUser } from "@/features/auth/components/session-gate";
+import { useSessionUser } from "@/features/auth/hooks/use-session";
 import { UserMenu } from "@/features/auth/components/user-menu";
 import { canManageUsers } from "@/features/auth/permissions";
 import { cn } from "@/lib/utils/cn";

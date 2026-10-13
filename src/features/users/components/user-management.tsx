@@ -9,29 +9,20 @@ import {
   PencilSquareIcon,
   UserPlusIcon,
 } from "@heroicons/react/20/solid";
-import { useState } from "react";
 import { Avatar } from "@/components/ui/atoms/avatar";
 import { Badge } from "@/components/ui/atoms/badge";
 import { Button } from "@/components/ui/atoms/button";
 import { Skeleton } from "@/components/ui/atoms/skeleton";
 import { ErrorState, StateMessage } from "@/components/ui/molecules/state-message";
 import { ConfirmDialog } from "@/components/ui/organisms/confirm-dialog";
-import { useToast } from "@/components/ui/organisms/toaster";
-import { useSessionUser } from "@/features/auth/components/session-gate";
-import { canManageUsers, ROLE_LABELS } from "@/features/auth/permissions";
+import { ROLE_LABELS } from "@/features/auth/permissions";
 import type { User } from "@/features/auth/types";
-import { toApiError } from "@/lib/http/errors";
 import { cn } from "@/lib/utils/cn";
-import { useUpdateUser, useUsers } from "../hooks/use-users";
+import { useCanManageUsers, useUserManagement } from "../hooks/use-user-management";
 import { UserFormDialog } from "./user-form-dialog";
 
-type DialogKind = "create" | "edit" | "disable";
-
-const TOGGLE_ERRORS = { 400: "این تغییر مجاز نیست. آخرین مالک فعال را نمی‌توان غیرفعال کرد." };
-
 export function UserManagement() {
-  const me = useSessionUser();
-  if (!canManageUsers(me.role)) {
+  if (!useCanManageUsers()) {
     return (
       <StateMessage
         icon={<NoSymbolIcon aria-hidden="true" />}
@@ -40,34 +31,11 @@ export function UserManagement() {
       />
     );
   }
-  return <UserManagementContent me={me} />;
+  return <UserManagementContent />;
 }
 
-function UserManagementContent({ me }: { me: User }) {
-  const toast = useToast();
-  const users = useUsers();
-  const update = useUpdateUser();
-  const [dialog, setDialog] = useState<{ kind: DialogKind; user?: User }>({ kind: "create" });
-  const [open, setOpen] = useState(false);
-  const show = (kind: DialogKind, user?: User) => {
-    setDialog({ kind, user });
-    setOpen(true);
-  };
-  const close = () => setOpen(false);
-
-  const setActive = (user: User, isActive: boolean) => {
-    if (update.isPending) return;
-    update.mutate(
-      { id: user.id, payload: { isActive } },
-      {
-        onSuccess: () => {
-          toast("success", isActive ? `«${user.fullName}» فعال شد.` : `«${user.fullName}» غیرفعال شد.`);
-          close();
-        },
-        onError: (error) => toast("error", toApiError(error, TOGGLE_ERRORS).message),
-      },
-    );
-  };
+function UserManagementContent() {
+  const m = useUserManagement();
 
   return (
     <div className="space-y-6">
@@ -76,20 +44,20 @@ function UserManagementContent({ me }: { me: User }) {
           <h1 className="text-xl font-bold text-ink">کاربران</h1>
           <p className="mt-1 text-sm text-ink-muted">ایجاد کاربر، تغییر نقش و غیرفعال‌سازی حساب‌ها.</p>
         </div>
-        <Button onClick={() => show("create")}>
+        <Button onClick={m.openCreate}>
           <UserPlusIcon className="size-4" aria-hidden="true" />
           کاربر جدید
         </Button>
       </div>
 
-      {users.isPending ? (
+      {m.view === "loading" ? (
         <div className="space-y-2" role="status" aria-label="در حال بارگذاری کاربران">
           {[0, 1, 2].map((i) => (
             <Skeleton key={i} className="h-16 rounded-xl" />
           ))}
         </div>
-      ) : users.isError ? (
-        <ErrorState message={toApiError(users.error).message} onRetry={() => users.refetch()} />
+      ) : m.view === "error" ? (
+        <ErrorState message={m.errorMessage ?? ""} onRetry={m.retry} />
       ) : (
         <div className="overflow-hidden rounded-xl bg-surface ring-1 ring-line">
           <table className="w-full text-sm">
@@ -111,8 +79,7 @@ function UserManagementContent({ me }: { me: User }) {
               </tr>
             </thead>
             <tbody className="divide-y divide-line">
-              {users.data.map((user) => {
-                const isSelf = user.id === me.id;
+              {m.rows.map(({ user, isSelf }) => {
                 return (
                   <tr key={user.id} className={cn(!user.isActive && "bg-zinc-50/70")}>
                     <td className="px-4 py-3">
@@ -153,7 +120,7 @@ function UserManagementContent({ me }: { me: User }) {
                           className="z-40 w-48 rounded-xl bg-surface p-1 shadow-lg ring-1 ring-line [--anchor-gap:4px] focus:outline-none transition duration-100 ease-out data-closed:opacity-0"
                         >
                           <MenuItem>
-                            <button type="button" className={itemClass} onClick={() => show("edit", user)}>
+                            <button type="button" className={itemClass} onClick={() => m.openEdit(user)}>
                               <PencilSquareIcon className="size-4 text-ink-subtle" aria-hidden="true" />
                               ویرایش
                             </button>
@@ -164,13 +131,13 @@ function UserManagementContent({ me }: { me: User }) {
                                 <button
                                   type="button"
                                   className={cn(itemClass, "text-rose-700 data-focus:bg-rose-50")}
-                                  onClick={() => show("disable", user)}
+                                  onClick={() => m.askDisable(user)}
                                 >
                                   <LockClosedIcon className="size-4" aria-hidden="true" />
                                   غیرفعال‌سازی
                                 </button>
                               ) : (
-                                <button type="button" className={itemClass} onClick={() => setActive(user, true)}>
+                                <button type="button" className={itemClass} onClick={() => m.activate(user)}>
                                   <LockOpenIcon className="size-4 text-ink-subtle" aria-hidden="true" />
                                   فعال‌سازی
                                 </button>
@@ -188,25 +155,20 @@ function UserManagementContent({ me }: { me: User }) {
         </div>
       )}
 
-      <UserFormDialog
-        open={open && (dialog.kind === "create" || dialog.kind === "edit")}
-        user={dialog.kind === "edit" ? dialog.user : undefined}
-        isSelf={dialog.user?.id === me.id}
-        onClose={close}
-      />
+      <UserFormDialog open={m.formOpen} user={m.editingUser} isSelf={m.editingSelf} onClose={m.closeDialog} />
       <ConfirmDialog
-        open={open && dialog.kind === "disable"}
+        open={m.disableOpen}
         title="غیرفعال‌سازی کاربر"
         message={
           <>
-            «<strong className="font-semibold text-ink">{dialog.user?.fullName}</strong>» دیگر نمی‌تواند وارد شود و
+            «<strong className="font-semibold text-ink">{m.selectedUser?.fullName}</strong>» دیگر نمی‌تواند وارد شود و
             نشست‌های فعلی او باید توسط سرور باطل شود. هر زمان می‌توانید دوباره او را فعال کنید.
           </>
         }
         confirmLabel="غیرفعال‌سازی"
-        loading={update.isPending}
-        onConfirm={() => dialog.user && setActive(dialog.user, false)}
-        onClose={close}
+        loading={m.updating}
+        onConfirm={m.confirmDisable}
+        onClose={m.closeDialog}
       />
     </div>
   );

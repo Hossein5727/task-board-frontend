@@ -1,27 +1,20 @@
 "use client";
 
-import { createContext, useContext } from "react";
 import { Spinner } from "@/components/ui/atoms/spinner";
 import { ErrorState } from "@/components/ui/molecules/state-message";
-import { getStatus, toApiError } from "@/lib/http/errors";
-import { useCurrentUser } from "../hooks/use-session";
-import type { User } from "../types";
+import { SessionContext } from "../hooks/use-session";
+import { useSessionGate } from "../hooks/use-session-gate";
 
-const SessionContext = createContext<User | null>(null);
-
-/**
- * Renders children only once `/auth/me` confirms a session. A 401 that survives the refresh attempt
- * triggers the global session-expired redirect (see Providers), so here we just show a pending state.
- */
+/** Renders children only once `/auth/me` confirms a session. */
 export function SessionGate({ children }: { children: React.ReactNode }) {
-  const { data: user, error, refetch } = useCurrentUser();
+  const { user, errorMessage, retry } = useSessionGate();
 
   if (user) return <SessionContext.Provider value={user}>{children}</SessionContext.Provider>;
 
-  if (error && getStatus(error) !== 401) {
+  if (errorMessage) {
     return (
       <main className="mx-auto max-w-md px-4 py-24">
-        <ErrorState message={toApiError(error).message} onRetry={() => refetch()} />
+        <ErrorState message={errorMessage} onRetry={retry} />
       </main>
     );
   }
@@ -32,10 +25,4 @@ export function SessionGate({ children }: { children: React.ReactNode }) {
       در حال بررسی نشست…
     </div>
   );
-}
-
-export function useSessionUser(): User {
-  const user = useContext(SessionContext);
-  if (!user) throw new Error("useSessionUser must be used inside SessionGate");
-  return user;
 }

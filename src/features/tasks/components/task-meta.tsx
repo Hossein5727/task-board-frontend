@@ -7,24 +7,32 @@ import {
   MinusIcon,
   PlayCircleIcon,
 } from "@heroicons/react/20/solid";
+import { Avatar } from "@/components/ui/atoms/avatar";
 import { Badge } from "@/components/ui/atoms/badge";
 import type { SelectOption } from "@/components/ui/molecules/select-field";
 import { cn } from "@/lib/utils/cn";
-import type { TaskPriority, TaskStatus } from "../types";
+import { PRIORITY_LABELS, STATUS_LABELS } from "../constants";
+import type { PersonOption, TaskPriority, TaskStatus } from "../types";
 import { formatDueDate, isOverdue } from "../utils/dates";
 
 // Every status/priority is shown with an icon and text, never color alone.
 export const STATUS_META: Record<TaskStatus, { label: string; icon: typeof CheckCircleIcon; tone: string; dot: string }> = {
-  todo: { label: "برای انجام", icon: EllipsisHorizontalCircleIcon, tone: "text-zinc-600", dot: "bg-zinc-400" },
-  in_progress: { label: "در حال انجام", icon: PlayCircleIcon, tone: "text-amber-700", dot: "bg-amber-500" },
-  done: { label: "انجام‌شده", icon: CheckCircleIcon, tone: "text-emerald-700", dot: "bg-emerald-500" },
+  todo: { label: STATUS_LABELS.todo, icon: EllipsisHorizontalCircleIcon, tone: "text-zinc-600", dot: "bg-zinc-400" },
+  in_progress: { label: STATUS_LABELS.in_progress, icon: PlayCircleIcon, tone: "text-amber-700", dot: "bg-amber-500" },
+  done: { label: STATUS_LABELS.done, icon: CheckCircleIcon, tone: "text-emerald-700", dot: "bg-emerald-500" },
 };
 
 export const PRIORITY_META: Record<TaskPriority, { label: string; icon: typeof ArrowUpIcon; className: string }> = {
-  low: { label: "اولویت کم", icon: ArrowDownIcon, className: "bg-zinc-50 text-zinc-700 ring-zinc-200" },
-  medium: { label: "اولویت متوسط", icon: MinusIcon, className: "bg-sky-50 text-sky-800 ring-sky-200" },
-  high: { label: "اولویت بالا", icon: ArrowUpIcon, className: "bg-rose-50 text-rose-800 ring-rose-200" },
+  low: { label: PRIORITY_LABELS.low, icon: ArrowDownIcon, className: "bg-zinc-50 text-zinc-700 ring-zinc-200" },
+  medium: { label: PRIORITY_LABELS.medium, icon: MinusIcon, className: "bg-sky-50 text-sky-800 ring-sky-200" },
+  high: { label: PRIORITY_LABELS.high, icon: ArrowUpIcon, className: "bg-rose-50 text-rose-800 ring-rose-200" },
 };
+
+export const withAvatars = (options: PersonOption[]): SelectOption<string>[] =>
+  options.map(({ avatarName, ...option }) => ({
+    ...option,
+    icon: avatarName ? <Avatar name={avatarName} /> : undefined,
+  }));
 
 export const statusOptions: SelectOption<TaskStatus>[] = (Object.keys(STATUS_META) as TaskStatus[]).map((value) => {
   const { label, icon: Icon, tone } = STATUS_META[value];

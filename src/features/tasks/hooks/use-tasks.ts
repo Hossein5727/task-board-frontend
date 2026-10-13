@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo } from "react";
-import { useSessionUser } from "@/features/auth/components/session-gate";
+import { useSessionUser } from "@/features/auth/hooks/use-session";
 import { canAssignToOthers } from "@/features/auth/permissions";
 import { useUsers } from "@/features/users/hooks/use-users";
 import { createTask, deleteTask, getTask, listTasks, taskKeys, updateTask } from "../api/tasks-api";

@@ -1,7 +1,18 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { createContext, useContext } from "react";
 import { authKeys, fetchCurrentUser, login, logout } from "../api/auth-api";
+import type { User } from "../types";
+
+/** Provided by `SessionGate` once `/auth/me` confirms a session. */
+export const SessionContext = createContext<User | null>(null);
+
+export function useSessionUser(): User {
+  const user = useContext(SessionContext);
+  if (!user) throw new Error("useSessionUser must be used inside SessionGate");
+  return user;
+}
 
 export function useCurrentUser() {
   return useQuery({

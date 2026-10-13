@@ -4,10 +4,9 @@ import { Menu, MenuButton, MenuItem, MenuItems, MenuSeparator } from "@headlessu
 import { ArrowsRightLeftIcon, EllipsisVerticalIcon, EyeIcon, PencilSquareIcon, TrashIcon } from "@heroicons/react/20/solid";
 import { Avatar } from "@/components/ui/atoms/avatar";
 import { cn } from "@/lib/utils/cn";
-import type { Task, TaskStatus } from "../types";
+import { useTaskCard, type TaskAction } from "../hooks/use-task-card";
+import type { Task } from "../types";
 import { DueDateBadge, PriorityBadge, STATUS_META } from "./task-meta";
-
-export type TaskAction = { type: "view" | "edit" | "delete" } | { type: "move"; status: TaskStatus };
 
 interface TaskCardProps {
   task: Task;
@@ -19,8 +18,7 @@ const itemClass =
   "flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 text-sm text-ink data-focus:bg-zinc-100 data-disabled:opacity-50";
 
 export function TaskCard({ task, canDelete, onAction }: TaskCardProps) {
-  const titleId = `task-${task.id}-title`;
-  const otherStatuses = (Object.keys(STATUS_META) as TaskStatus[]).filter((s) => s !== task.status);
+  const { titleId, isDone, otherStatuses, act } = useTaskCard(task, onAction);
 
   return (
     <article
@@ -31,7 +29,7 @@ export function TaskCard({ task, canDelete, onAction }: TaskCardProps) {
         <h3 id={titleId} className="min-w-0 flex-1 text-sm leading-6 font-semibold text-ink">
           <button
             type="button"
-            onClick={() => onAction(task, { type: "view" })}
+            onClick={() => act({ type: "view" })}
             className="text-start break-words hover:text-brand-700 focus-visible:outline-offset-4"
           >
             {task.title}
@@ -50,13 +48,13 @@ export function TaskCard({ task, canDelete, onAction }: TaskCardProps) {
             className="z-40 w-52 rounded-xl bg-surface p-1 shadow-lg ring-1 ring-line [--anchor-gap:4px] focus:outline-none transition duration-100 ease-out data-closed:opacity-0"
           >
             <MenuItem>
-              <button type="button" className={itemClass} onClick={() => onAction(task, { type: "view" })}>
+              <button type="button" className={itemClass} onClick={() => act({ type: "view" })}>
                 <EyeIcon className="size-4 text-ink-subtle" aria-hidden="true" />
                 مشاهده
               </button>
             </MenuItem>
             <MenuItem>
-              <button type="button" className={itemClass} onClick={() => onAction(task, { type: "edit" })}>
+              <button type="button" className={itemClass} onClick={() => act({ type: "edit" })}>
                 <PencilSquareIcon className="size-4 text-ink-subtle" aria-hidden="true" />
                 ویرایش
               </button>
@@ -64,7 +62,7 @@ export function TaskCard({ task, canDelete, onAction }: TaskCardProps) {
             <MenuSeparator className="my-1 h-px bg-line" />
             {otherStatuses.map((status) => (
               <MenuItem key={status}>
-                <button type="button" className={itemClass} onClick={() => onAction(task, { type: "move", status })}>
+                <button type="button" className={itemClass} onClick={() => act({ type: "move", status })}>
                   <ArrowsRightLeftIcon className="size-4 text-ink-subtle" aria-hidden="true" />
                   انتقال به «{STATUS_META[status].label}»
                 </button>
@@ -77,7 +75,7 @@ export function TaskCard({ task, canDelete, onAction }: TaskCardProps) {
                   <button
                     type="button"
                     className={cn(itemClass, "text-rose-700 data-focus:bg-rose-50")}
-                    onClick={() => onAction(task, { type: "delete" })}
+                    onClick={() => act({ type: "delete" })}
                   >
                     <TrashIcon className="size-4" aria-hidden="true" />
                     حذف
@@ -91,7 +89,7 @@ export function TaskCard({ task, canDelete, onAction }: TaskCardProps) {
 
       <div className="mt-2.5 flex flex-wrap gap-1.5">
         <PriorityBadge priority={task.priority} />
-        {task.dueDate && <DueDateBadge dueDate={task.dueDate} done={task.status === "done"} />}
+        {task.dueDate && <DueDateBadge dueDate={task.dueDate} done={isDone} />}
       </div>
 
       <div className="mt-3 flex items-center gap-2 border-t border-line pt-2.5 text-xs text-ink-muted">

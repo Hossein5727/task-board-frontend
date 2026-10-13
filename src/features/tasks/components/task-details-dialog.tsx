@@ -7,8 +7,7 @@ import { Button } from "@/components/ui/atoms/button";
 import { Skeleton } from "@/components/ui/atoms/skeleton";
 import { FormAlert } from "@/components/ui/molecules/form-alert";
 import { Modal, ModalBody, ModalFooter } from "@/components/ui/organisms/modal";
-import { toApiError } from "@/lib/http/errors";
-import { useTask } from "../hooks/use-tasks";
+import { useTaskDetails } from "../hooks/use-task-details";
 import type { Task } from "../types";
 import { DueDateBadge, PriorityBadge, StatusBadge } from "./task-meta";
 
@@ -45,13 +44,12 @@ function TaskDetails({
   onEdit: (task: Task) => void;
   onDelete: (task: Task) => void;
 }) {
-  // Fetch the single task so the dialog reflects the latest server state, showing list data meanwhile.
-  const { data: task = initial, error } = useTask(initial.id, initial);
+  const { task, isDone, errorMessage } = useTaskDetails(initial);
 
   return (
     <>
       <ModalBody className="space-y-5">
-        {error && <FormAlert>{toApiError(error).message}</FormAlert>}
+        {errorMessage && <FormAlert>{errorMessage}</FormAlert>}
         <dl className="grid grid-cols-2 gap-x-4 gap-y-3 rounded-xl bg-zinc-50 p-4 text-sm ring-1 ring-line sm:grid-cols-3">
           <Detail label="وضعیت">
             <StatusBadge status={task.status} />
@@ -60,7 +58,7 @@ function TaskDetails({
             <PriorityBadge priority={task.priority} />
           </Detail>
           <Detail label="سررسید">
-            {task.dueDate ? <DueDateBadge dueDate={task.dueDate} done={task.status === "done"} /> : "—"}
+            {task.dueDate ? <DueDateBadge dueDate={task.dueDate} done={isDone} /> : "—"}
           </Detail>
           <Detail label="مسئول">
             {task.assignee ? (
