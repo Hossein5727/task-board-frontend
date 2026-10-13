@@ -446,3 +446,18 @@ Completion requires:
 - Remaining limitations are honestly documented.
 
 Do not claim production readiness solely because the application builds.
+
+## 20. Current Implementation Decisions
+
+Keep these aligned with `README.md` (which holds the full provisional backend contract and limitations).
+
+- Next.js 16 with `cacheComponents`. Read `node_modules/next/dist/docs` before using framework APIs; this version differs from older training data.
+- The `/api/v1/*` proxy required by `PROJECT_SPEC.md` is a single rewrite in `next.config.ts` to `BACKEND_URL`. Do not add route-handler proxies or token handling in Next.js without agreeing it with the backend developer.
+- All HTTP goes through `src/lib/http/client.ts`. Its 401 → single refresh → single retry → session-expired flow is covered by tests; keep it loop-free.
+- Private data is fetched only client-side with TanStack Query behind `SessionGate`; static shells contain no user data. Dashboard pages export `instant = false` for this reason.
+- Logout and session expiry use a full page navigation to discard caches and `<Activity>`-preserved routes.
+- TipTap: one extension set (`src/lib/tiptap/extensions.ts`) and one whitelist sanitizer (`src/lib/tiptap/document.ts`) shared by the editor and viewer. Change both together and update the backend validation contract when you do.
+- Task filtering is client-side until server-side filter parameters are agreed.
+- The structure in section 5 is adapted: there is no `templates/` level (the only shared page structure is `components/layout/app-shell.tsx`), and there are no top-level `hooks/` or `types/` folders because nothing shared needs them yet.
+- `e2e/mock-backend.mjs` is a test-only implementation of the provisional contract. It is not the backend and must not grow into one.
+- Test commands: `npm run typecheck`, `npm run lint`, `npm test`, `npm run test:e2e` (set `PW_CHANNEL=chrome` when Playwright browsers cannot be downloaded).
